@@ -5,11 +5,11 @@ from tortoise.exceptions import ConfigurationError
 
 
 class BaseSchemaGenerator:
-    TABLE_CREATE_TEMPLATE = 'CREATE TABLE "{}" ({});'
+    TABLE_CREATE_TEMPLATE = 'CREATE TABLE {}"{}" ({});'
     FIELD_TEMPLATE = '"{name}" {type} {nullable} {unique}'
     FK_TEMPLATE = ' REFERENCES "{table}" (id) ON DELETE {on_delete}'
     M2M_TABLE_TEMPLATE = (
-        'CREATE TABLE "{table_name}" '
+        'CREATE TABLE {exists}"{table_name}" '
         '("{backward_key}" INT NOT NULL REFERENCES "{backward_table}" (id) ON DELETE CASCADE, '
         '"{forward_key}" INT NOT NULL REFERENCES "{forward_table}" (id) ON DELETE CASCADE);'
     )
@@ -47,7 +47,9 @@ class BaseSchemaGenerator:
         # has to implement in children
         raise NotImplementedError()  # pragma: nocoverage
 
-    def _get_table_sql(self, model) -> dict:
+    def _get_table_sql(self, model, safe=True) -> dict:
+
+
         fields_to_create = []
         m2m_tables_for_create = []
         references = set()
@@ -77,6 +79,7 @@ class BaseSchemaGenerator:
 
         table_fields_string = ', '.join(fields_to_create)
         table_create_string = self.TABLE_CREATE_TEMPLATE.format(
+            "IF NOT EXISTS " if safe else "",
             model._meta.table,
             table_fields_string,
         )
@@ -87,6 +90,7 @@ class BaseSchemaGenerator:
                 continue
             m2m_tables_for_create.append(
                 self.M2M_TABLE_TEMPLATE.format(
+                    exists="IF NOT EXISTS " if safe else "",
                     table_name=field_object.through,
                     backward_table=model._meta.table,
                     forward_table=field_object.type._meta.table,
@@ -103,7 +107,7 @@ class BaseSchemaGenerator:
             'm2m_tables': m2m_tables_for_create,
         }
 
-    def get_create_schema_sql(self) -> str:
+    def get_create_schema_sql(self, safe=True) -> str:
         from tortoise import Tortoise
         models_to_create = []
 
@@ -114,7 +118,7 @@ class BaseSchemaGenerator:
 
         tables_to_create = []
         for model in models_to_create:
-            tables_to_create.append(self._get_table_sql(model))
+            tables_to_create.append(self._get_table_sql(model, safe))
 
         tables_to_create_count = len(tables_to_create)
 
