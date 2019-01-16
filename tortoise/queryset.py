@@ -1,13 +1,13 @@
 from copy import copy
-from typing import Any, Dict, Generator, List, Optional, Set, Tuple  # noqa
+from typing import Any, Dict, List, Optional, Set, Tuple  # noqa
 
 from pypika import JoinType, Order, Query, Table  # noqa
 from pypika.functions import Count
-
 from tortoise import fields
 from tortoise.aggregation import Aggregate
-from tortoise.backends.base.client import BaseDBAsyncClient
+from tortoise.backends.engines.base.client import BaseDBAsyncClient
 from tortoise.exceptions import DoesNotExist, FieldError, IntegrityError, MultipleObjectsReturned
+from tortoise.function import Function
 from tortoise.query_utils import Prefetch, Q, QueryModifier, _get_joins_for_related_field
 from tortoise.utils import QueryAsyncIterator
 
@@ -186,8 +186,8 @@ class QuerySet(AwaitableQuery):
                 field_name = ordering
 
             if not (
-                field_name.split('__')[0] in self.model._meta.fields
-                or field_name in self._annotations
+                    field_name.split('__')[0] in self.model._meta.fields
+                    or field_name in self._annotations
             ):
                 raise FieldError(
                     'Unknown field {} for model {}'.format(
@@ -266,10 +266,10 @@ class QuerySet(AwaitableQuery):
                 raise FieldError('Duplicate key {}'.format(field))
             fields_for_select[field] = field
 
-        for return_as, field in kwargs.items():
+        for return_as, target in kwargs.items():
             if return_as in fields_for_select:
                 raise FieldError('Duplicate key {}'.format(return_as))
-            fields_for_select[return_as] = field
+            fields_for_select[return_as] = target
 
         return ValuesQuery(
             db=self._db,
@@ -532,7 +532,7 @@ class FieldSelectQuery(AwaitableQuery):
         if field in self.model._meta.fetch_fields and not forwarded_fields:
             raise ValueError(
                 'Selecting relation "{}" is not possible, select concrete field on related model'
-                .format(field)
+                    .format(field)
             )
 
         field_object = model._meta.fields_map.get(field)
@@ -560,8 +560,12 @@ class FieldSelectQuery(AwaitableQuery):
         if field in self.model._meta.fetch_fields:
             raise ValueError(
                 'Selecting relation "{}" is not possible, select concrete field on related model'
-                .format(field)
+                    .format(field)
             )
+
+        if isinstance(field, Function):
+            self.query = self.query.select(field).as_(return_as)
+            return
 
         field_split = field.split('__')
         if field_split[0] in self.model._meta.fetch_fields:
@@ -579,7 +583,7 @@ class FieldSelectQuery(AwaitableQuery):
         ))
 
     def resolve_to_python_value(self, model, field):
-        if field in model._meta.fetch_fields:
+        if field in model._meta.fetch_fields or isinstance(field, Function):
             # return as is to get whole model objects
             return lambda x: x
 

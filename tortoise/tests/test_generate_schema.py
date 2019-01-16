@@ -22,7 +22,7 @@ class TestGenerateSchema(test.SimpleTestCase):
         await Tortoise.init({
             "connections": {
                 "default": {
-                    "engine": "tortoise.backends.sqlite",
+                    "engine": "tortoise.backends.engines.aiosqlite",
                     "credentials": {
                         "file_path": ":memory:",
                     }

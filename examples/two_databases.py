@@ -57,13 +57,13 @@ async def run():
     await Tortoise.init({
         'connections': {
             'first': {
-                'engine': 'tortoise.backends.sqlite',
+                'engine': 'tortoise.backends.engines.aiosqlite',
                 'credentials': {
                     'file_path': 'example.sqlite3',
                 }
             },
             'second': {
-                'engine': 'tortoise.backends.sqlite',
+                'engine': 'tortoise.backends.engines.aiosqlite',
                 'credentials': {
                     'file_path': 'example1.sqlite3',
                 }

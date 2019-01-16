@@ -9,8 +9,8 @@ from typing import Coroutine, Dict, List, Optional, Type, Union, cast  # noqa
 from pypika import Table
 
 from tortoise import fields
-from tortoise.backends.base.client import BaseDBAsyncClient
-from tortoise.backends.base.config_generator import expand_db_url, generate_config
+from tortoise.backends.engines.base.client import BaseDBAsyncClient
+from tortoise.backends.engines.base.config_generator import expand_db_url, generate_config
 from tortoise.exceptions import ConfigurationError  # noqa
 from tortoise.fields import ManyToManyRelationManager  # noqa
 from tortoise.filters import get_backward_fk_filters, get_m2m_filters

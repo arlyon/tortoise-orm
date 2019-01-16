@@ -3,7 +3,7 @@ from typing import List
 
 from pypika import Table
 from tortoise import fields
-from tortoise.backends.base.executor import BaseExecutor
+from tortoise.backends.engines.base.executor import BaseExecutor
 
 
 def to_db_bool(self, value, instance):

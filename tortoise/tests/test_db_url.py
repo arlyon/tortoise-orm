@@ -1,4 +1,4 @@
-from tortoise.backends.base.config_generator import expand_db_url, generate_config
+from tortoise.backends.engines.base.config_generator import expand_db_url, generate_config
 from tortoise.contrib import test
 from tortoise.exceptions import ConfigurationError
 
@@ -12,7 +12,7 @@ class TestConfigGenerator(test.SimpleTestCase):
     def test_sqlite_basic(self):
         res = expand_db_url('sqlite:///some/test.sqlite')
         self.assertDictEqual(res, {
-            'engine': 'tortoise.backends.sqlite',
+            'engine': 'tortoise.backends.engines.aiosqlite',
             'credentials': {
                 'file_path': '/some/test.sqlite',
             }
@@ -21,7 +21,7 @@ class TestConfigGenerator(test.SimpleTestCase):
     def test_sqlite_relative(self):
         res = expand_db_url('sqlite://test.sqlite')
         self.assertDictEqual(res, {
-            'engine': 'tortoise.backends.sqlite',
+            'engine': 'tortoise.backends.engines.aiosqlite',
             'credentials': {
                 'file_path': 'test.sqlite',
             }
@@ -30,7 +30,7 @@ class TestConfigGenerator(test.SimpleTestCase):
     def test_sqlite_relative_with_subdir(self):
         res = expand_db_url('sqlite://data/db.sqlite')
         self.assertDictEqual(res, {
-            'engine': 'tortoise.backends.sqlite',
+            'engine': 'tortoise.backends.engines.aiosqlite',
             'credentials': {
                 'file_path': 'data/db.sqlite',
             }
@@ -46,7 +46,7 @@ class TestConfigGenerator(test.SimpleTestCase):
         self.assertIn('.sqlite', file_path)
         self.assertNotEqual('sqlite:///some/test-{}.sqlite', file_path)
         self.assertDictEqual(res, {
-            'engine': 'tortoise.backends.sqlite',
+            'engine': 'tortoise.backends.engines.aiosqlite',
             'credentials': {
                 'file_path': file_path,
             }
@@ -55,7 +55,7 @@ class TestConfigGenerator(test.SimpleTestCase):
     def test_sqlite_params(self):
         res = expand_db_url('sqlite:///some/test.sqlite?AHA=5&moo=yes')
         self.assertDictEqual(res, {
-            'engine': 'tortoise.backends.sqlite',
+            'engine': 'tortoise.backends.engines.aiosqlite',
             'credentials': {
                 'file_path': '/some/test.sqlite',
                 'AHA': '5',
@@ -70,7 +70,7 @@ class TestConfigGenerator(test.SimpleTestCase):
     def test_postgres_basic(self):
         res = expand_db_url('postgres://postgres:moo@127.0.0.1:54321/test')
         self.assertDictEqual(res, {
-            'engine': 'tortoise.backends.asyncpg',
+            'engine': 'tortoise.backends.engines.asyncpg',
             'credentials': {
                 'database': 'test',
                 'host': '127.0.0.1',
@@ -83,7 +83,7 @@ class TestConfigGenerator(test.SimpleTestCase):
     def test_postgres_no_port(self):
         res = expand_db_url('postgres://postgres@127.0.0.1/test')
         self.assertDictEqual(res, {
-            'engine': 'tortoise.backends.asyncpg',
+            'engine': 'tortoise.backends.engines.asyncpg',
             'credentials': {
                 'database': 'test',
                 'host': '127.0.0.1',
@@ -106,7 +106,7 @@ class TestConfigGenerator(test.SimpleTestCase):
         self.assertIn('test_', database)
         self.assertNotEqual('test_{}', database)
         self.assertDictEqual(res, {
-            'engine': 'tortoise.backends.asyncpg',
+            'engine': 'tortoise.backends.engines.asyncpg',
             'credentials': {
                 'database': database,
                 'host': '127.0.0.1',
@@ -119,7 +119,7 @@ class TestConfigGenerator(test.SimpleTestCase):
     def test_postgres_params(self):
         res = expand_db_url('postgres://postgres:@127.0.0.1:5432/test?AHA=5&moo=yes')
         self.assertDictEqual(res, {
-            'engine': 'tortoise.backends.asyncpg',
+            'engine': 'tortoise.backends.engines.asyncpg',
             'credentials': {
                 'database': 'test',
                 'host': '127.0.0.1',
@@ -134,7 +134,7 @@ class TestConfigGenerator(test.SimpleTestCase):
     def test_mysql_basic(self):
         res = expand_db_url('mysql://root:@127.0.0.1:33060/test')
         self.assertEqual(res, {
-            'engine': 'tortoise.backends.mysql',
+            'engine': 'tortoise.backends.engines.aiomysql',
             'credentials': {
                 'database': 'test',
                 'host': '127.0.0.1',
@@ -147,7 +147,7 @@ class TestConfigGenerator(test.SimpleTestCase):
     def test_mysql_no_port(self):
         res = expand_db_url('mysql://root@127.0.0.1/test')
         self.assertEqual(res, {
-            'engine': 'tortoise.backends.mysql',
+            'engine': 'tortoise.backends.engines.aiomysql',
             'credentials': {
                 'database': 'test',
                 'host': '127.0.0.1',
@@ -166,7 +166,7 @@ class TestConfigGenerator(test.SimpleTestCase):
         self.assertIn('test_', res['credentials']['database'])
         self.assertNotEqual('test_{}', res['credentials']['database'])
         self.assertEqual(res, {
-            'engine': 'tortoise.backends.mysql',
+            'engine': 'tortoise.backends.engines.aiomysql',
             'credentials': {
                 'database': res['credentials']['database'],
                 'host': '127.0.0.1',
@@ -180,7 +180,7 @@ class TestConfigGenerator(test.SimpleTestCase):
         res = expand_db_url('mysql://root:@127.0.0.1:3306/test?AHA=5&moo=yes&maxsize=20&minsize=5'
                             '&connect_timeout=1.5&echo=1')
         self.assertEqual(res, {
-            'engine': 'tortoise.backends.mysql',
+            'engine': 'tortoise.backends.engines.aiomysql',
             'credentials': {
                 'database': 'test',
                 'host': '127.0.0.1',
@@ -212,7 +212,7 @@ class TestConfigGenerator(test.SimpleTestCase):
                     'credentials': {
                         'file_path': '/some/test.sqlite'
                     },
-                    'engine': 'tortoise.backends.sqlite'
+                    'engine': 'tortoise.backends.engines.aiosqlite'
                 }
             },
             'apps': {
@@ -244,7 +244,7 @@ class TestConfigGenerator(test.SimpleTestCase):
                     'credentials': {
                         'file_path': '/some/test.sqlite',
                     },
-                    'engine': 'tortoise.backends.sqlite'
+                    'engine': 'tortoise.backends.engines.aiosqlite'
                 }
             },
             'apps': {
@@ -277,7 +277,7 @@ class TestConfigGenerator(test.SimpleTestCase):
                     'credentials': {
                         'file_path': '/some/test.sqlite'
                     },
-                    'engine': 'tortoise.backends.sqlite'
+                    'engine': 'tortoise.backends.engines.aiosqlite'
                 }
             },
             'apps': {

@@ -6,10 +6,10 @@ from typing import List, Optional  # noqa
 
 import aiosqlite
 
-from tortoise.backends.base.client import (BaseDBAsyncClient, BaseTransactionWrapper,
+from tortoise.backends.engines.base.client import (BaseDBAsyncClient, BaseTransactionWrapper,
                                            ConnectionWrapper, emitter)
-from tortoise.backends.sqlite.executor import SqliteExecutor
-from tortoise.backends.sqlite.schema_generator import SqliteSchemaGenerator
+from tortoise.backends.engines.aiosqlite.executor import SqliteExecutor
+from tortoise.backends.engines.aiosqlite.schema_generator import SqliteSchemaGenerator
 from tortoise.exceptions import IntegrityError, OperationalError, TransactionManagementError
 from tortoise.transactions import current_transaction_map
 

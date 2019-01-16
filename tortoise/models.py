@@ -4,7 +4,7 @@ from typing import Dict, Hashable, Optional, Set, Tuple, Type, TypeVar  # noqa
 from pypika import Query
 
 from tortoise import fields
-from tortoise.backends.base.client import BaseDBAsyncClient  # noqa
+from tortoise.backends.engines.base.client import BaseDBAsyncClient  # noqa
 from tortoise.exceptions import ConfigurationError, OperationalError
 from tortoise.fields import ManyToManyRelationManager, RelationQueryContainer
 from tortoise.filters import get_filters_for_field

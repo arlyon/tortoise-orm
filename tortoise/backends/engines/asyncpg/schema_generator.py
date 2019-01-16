@@ -1,5 +1,5 @@
 from tortoise import fields
-from tortoise.backends.base.schema_generator import BaseSchemaGenerator
+from tortoise.backends.engines.base.schema_generator import BaseSchemaGenerator
 
 
 class AsyncpgSchemaGenerator(BaseSchemaGenerator):

@@ -1,10 +1,11 @@
 import logging
-from typing import Sequence
+from typing import Sequence, List
 
 from pypika import Query
 
-from tortoise.backends.base.executor import BaseExecutor
-from tortoise.backends.base.schema_generator import BaseSchemaGenerator
+from tortoise.backends.engines.base.executor import BaseExecutor
+from tortoise.backends.engines.base.feature import Feature
+from tortoise.backends.engines.base.schema_generator import BaseSchemaGenerator
 from tortoise.events import ConnectionEvents, AsyncEmitter
 
 emitter = AsyncEmitter(ConnectionEvents)
@@ -14,6 +15,7 @@ class BaseDBAsyncClient:
     query_class = Query
     executor_class = BaseExecutor
     schema_generator = BaseSchemaGenerator
+    features: List[Feature]
 
     def __init__(self, connection_name: str, **kwargs) -> None:
         self.log = logging.getLogger('db_client')

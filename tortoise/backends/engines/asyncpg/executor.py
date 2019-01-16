@@ -2,7 +2,7 @@ from typing import List
 
 from pypika import Table
 
-from tortoise.backends.base.executor import BaseExecutor
+from tortoise.backends.engines.base.executor import BaseExecutor
 
 
 class AsyncpgExecutor(BaseExecutor):

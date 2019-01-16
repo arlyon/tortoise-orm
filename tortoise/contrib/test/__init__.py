@@ -9,7 +9,7 @@ from asynctest import _fail_on
 from asynctest.case import _Policy
 
 from tortoise import Tortoise
-from tortoise.backends.base.config_generator import generate_config as _generate_config
+from tortoise.backends.engines.base.config_generator import generate_config as _generate_config
 from tortoise.exceptions import DBConnectionError
 from tortoise.transactions import current_transaction_map, start_transaction
 

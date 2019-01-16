@@ -6,9 +6,9 @@ from pypika.queries import QueryBuilder
 from pypika import Query
 
 from tortoise import Model
-from tortoise.backends.base.client import emitter as client_emitter
-from tortoise.backends.base.schema_generator import emitter as schema_emitter
-from tortoise.backends.base.executor import emitter as executor_emitter
+from tortoise.backends.engines.base.client import emitter as client_emitter
+from tortoise.backends.engines.base.schema_generator import emitter as schema_emitter
+from tortoise.backends.engines.base.executor import emitter as executor_emitter
 from tortoise.events import TableGenerationEvents, ConnectionEvents, ExecutorEvents
 from tortoise.events.decorators import handles_event
 from tortoise.function import func

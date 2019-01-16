@@ -7,9 +7,9 @@ from tortoise.exceptions import ConfigurationError
 urlparse.uses_netloc.append('postgres')
 urlparse.uses_netloc.append('sqlite')
 urlparse.uses_netloc.append('mysql')
-DB_LOOKUP = {
+DIALECT_LOOKUP = {
     'postgres': {
-        'engine': 'tortoise.backends.asyncpg',
+        'default_engine': 'asyncpg',
         'vmap': {
             'path': 'database',
             'hostname': 'host',
@@ -28,7 +28,7 @@ DB_LOOKUP = {
         },
     },
     'sqlite': {
-        'engine': 'tortoise.backends.sqlite',
+        'default_engine': 'aiosqlite',
         'skip_first_char': False,
         'vmap': {
             'path': 'file_path',
@@ -37,7 +37,7 @@ DB_LOOKUP = {
         'cast': {},
     },
     'mysql': {
-        'engine': 'tortoise.backends.mysql',
+        'default_engine': 'aiomysql',
         'vmap': {
             'path': 'database',
             'hostname': 'host',
@@ -60,11 +60,18 @@ DB_LOOKUP = {
 
 
 def expand_db_url(db_url: str, testing: bool = False) -> dict:
-    url = urlparse.urlparse(db_url)
-    if url.scheme not in DB_LOOKUP:
-        raise ConfigurationError('Unknown DB scheme: {}'.format(url.scheme))
 
-    db = DB_LOOKUP[url.scheme]
+    url = urlparse.urlparse(db_url)
+
+    if "+" in url.scheme:
+        dialect, engine = url.scheme.split("+")
+    else:
+        dialect = url.scheme
+        if dialect not in DIALECT_LOOKUP:
+            raise ConfigurationError('Unknown DB dialect: {}'.format(dialect))
+        engine = DIALECT_LOOKUP[dialect]['default_engine']
+
+    db = DIALECT_LOOKUP[dialect]
     if db.get('skip_first_char', True):
         path = url.path[1:]
     else:
@@ -101,7 +108,7 @@ def expand_db_url(db_url: str, testing: bool = False) -> dict:
         params[vmap['password']] = str(url.password or '')
 
     return {
-        'engine': db['engine'],
+        'engine': 'tortoise.backends.engines.' + engine,
         'credentials': params,
     }
 
