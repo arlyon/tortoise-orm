@@ -56,6 +56,14 @@ DB_LOOKUP = {
             'no_delay': bool,
         },
     },
+    'spatialite': {
+        'extends': 'sqlite',
+        'engine': 'tortoise.contrib.gis.backends.spatialite'
+    },
+    'postgis': {
+        'extends': 'postgres',
+        'engine': 'tortoise.contrib.gis.backends.postgis'
+    }
 }  # type: Dict[str, Dict[str, Any]]
 
 
@@ -65,6 +73,10 @@ def expand_db_url(db_url: str, testing: bool = False) -> dict:
         raise ConfigurationError('Unknown DB scheme: {}'.format(url.scheme))
 
     db = DB_LOOKUP[url.scheme]
+
+    if "extends" in db:
+        db = {**DB_LOOKUP[db["extends"]], **DB_LOOKUP[url.scheme]}
+
     if db.get('skip_first_char', True):
         path = url.path[1:]
     else:

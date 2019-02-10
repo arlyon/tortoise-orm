@@ -91,6 +91,7 @@ class BaseSchemaGenerator:
         fields_with_index = []
         m2m_tables_for_create = []
         references = set()
+        self._before_generate_sql(model)
         for field_name, db_field in model._meta.fields_db_projection.items():
             field_object = model._meta.fields_map[field_name]
             if isinstance(field_object, (fields.IntField, fields.BigIntField)) and field_object.pk:
@@ -182,13 +183,15 @@ class BaseSchemaGenerator:
                 )
             )
 
-        return {
+        table_data = {
             'table': model._meta.table,
             'model': model,
             'table_creation_string': table_create_string,
             'references': references,
             'm2m_tables': m2m_tables_for_create,
         }
+        self._after_generate_sql(table_data)
+        return table_data
 
     def get_create_schema_sql(self, safe=True) -> str:
         from tortoise import Tortoise
@@ -228,3 +231,9 @@ class BaseSchemaGenerator:
 
     async def generate_from_string(self, creation_string: str) -> None:
         await self.client.execute_script(creation_string)
+
+    def _before_generate_sql(self, model):
+        """Allow hooking in to the model and changing it before generating the SQL"""
+
+    def _after_generate_sql(self, table_data):
+        """Allow changing the table data after generating it."""

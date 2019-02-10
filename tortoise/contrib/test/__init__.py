@@ -124,7 +124,7 @@ def env_initializer() -> None:
     ``TORTOISE_TEST_DB``:
         The db_url of the test db. *(optional*)
     """
-    modules = str(_os.environ.get('TORTOISE_TEST_MODULES', 'tortoise.tests.testmodels')).split(',')
+    modules = str(_os.environ.get('TORTOISE_TEST_MODULES', 'tortoise.tests.testmodels,tortoise.contrib.gis.tests.testmodels')).split(',')
     db_url = _os.environ.get('TORTOISE_TEST_DB', 'sqlite://:memory:')
     if not modules:  # pragma: nocoverage
         raise Exception('TORTOISE_TEST_MODULES envvar not defined')
@@ -257,15 +257,20 @@ def requireCapability(connection_name: str = 'models', **conditions: Any):
             ...
 
     :param connection_name: name of the connection to retrieve capabilities from.
-    :param conditions: capability tests which must all pass for the test to run.
+    :param **conditions: capability tests which must all pass for the test to run.
+        Passing a list acts as a boolean OR.
     """
     def decorator(test_item):
         @wraps(test_item)
         def skip_wrapper(*args, **kwargs):
             db = Tortoise.get_connection(connection_name)
             for key, val in conditions.items():
-                if getattr(db.capabilities, key) != val:
-                    raise SkipTest('Capability {key} != {val}'.format(key=key, val=val))
+                if isinstance(val, list):
+                    if getattr(db.capabilities, key) not in val:
+                        raise SkipTest('Capability {key} not in list {val}'.format(key=key, val=val))
+                else:
+                    if getattr(db.capabilities, key) != val:
+                        raise SkipTest('Capability {key} != {val}'.format(key=key, val=val))
             return test_item(*args, **kwargs)
         return skip_wrapper
     return decorator
