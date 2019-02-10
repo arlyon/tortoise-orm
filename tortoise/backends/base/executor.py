@@ -4,6 +4,7 @@ from pypika import JoinType, Table
 
 from tortoise import fields
 from tortoise.exceptions import OperationalError
+from tortoise.function import Function
 from tortoise.query_utils import QueryModifier
 
 INSERT_CACHE = {}  # type: Dict[str, Tuple[list, list, str]]
@@ -55,26 +56,33 @@ class BaseExecutor:
         return [self._field_to_db(self.model._meta.fields_map[column], getattr(instance, column),
                                   instance) for column in regular_columns]
 
-    def _prepare_insert_statement(self, columns: List[str]) -> str:
+    def _prepare_insert_statement(self, columns: List[str], values: List[Any]) -> str:
         # Insert should implement returning new id to saved object
         # Each db has it's own methods for it, so each implementation should
         # go to descendant executors
         raise NotImplementedError()  # pragma: nocoverage
 
     async def execute_insert(self, instance):
-        key = '{}:{}'.format(self.db.connection_name, self.model._meta.table)
-        if key not in INSERT_CACHE:
-            regular_columns, columns = self._prepare_insert_columns()
-            query = self._prepare_insert_statement(columns)
-            INSERT_CACHE[key] = regular_columns, columns, query
-        else:
-            regular_columns, columns, query = INSERT_CACHE[key]
+        """
+        Retrieves the columns and values, and expands functions,
+        to build a parametrized sql query.
+        """
 
+        regular_columns, columns = self._prepare_insert_columns()
         values = self._prepare_insert_values(
             instance=instance,
             regular_columns=regular_columns,
         )
-        instance.id = await self.db.execute_insert(query, values)
+        query = self._prepare_insert_statement(columns, values)
+
+        expanded_values = []
+        for value in values:
+            if isinstance(value, Function):
+                expanded_values += value.parameters
+            else:
+                expanded_values.append(value)
+
+        instance.id = await self.db.execute_insert(query, expanded_values)
         return instance
 
     async def execute_update(self, instance):

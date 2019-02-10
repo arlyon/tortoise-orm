@@ -6,6 +6,7 @@ from pypika.enums import SqlTypes
 from tortoise.backends.base.executor import BaseExecutor
 from tortoise.filters import (contains, ends_with, insensitive_contains, insensitive_ends_with,
                               insensitive_starts_with, starts_with)
+from tortoise.function import Function
 
 
 def mysql_contains(field, value):
@@ -49,8 +50,15 @@ class MySQLExecutor(BaseExecutor):
     }
     EXPLAIN_PREFIX = 'EXPLAIN FORMAT=JSON'
 
-    def _prepare_insert_statement(self, columns: List[str]) -> str:
+    def _prepare_insert_statement(self, columns: List[str], values: List[str]) -> str:
+        values = [
+            value.parameterize('%s') if isinstance(value, Function) else Parameter('%s')
+            for value in values
+        ]
+
         return str(
-            MySQLQuery.into(Table(self.model._meta.table)).columns(*columns)
-            .insert(*[Parameter('%s') for _ in range(len(columns))])
+            MySQLQuery
+                .into(Table(self.model._meta.table))
+                .columns(*columns)
+                .insert(*values)
         )
