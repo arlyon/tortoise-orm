@@ -1,9 +1,11 @@
+from datetime import datetime, timedelta
 from decimal import Decimal
+from typing import List
 
 from tortoise.contrib import test
 from tortoise.exceptions import FieldError
 from tortoise.tests.testmodels import (BooleanFields, CharFields, DecimalFields, RaceParticipant,
-                                       RacePlacingEnum)
+                                       RacePlacingEnum, DatetimeFields)
 
 
 class TestCharFieldFilters(test.TestCase):
@@ -210,7 +212,7 @@ class TestDecimalFieldFilters(test.TestCase):
     async def test_gt(self):
         self.assertEqual(
             await DecimalFields.filter(decimal__gt=Decimal('1.2345')).order_by('decimal')
-            .values_list('decimal', flat=True),
+                .values_list('decimal', flat=True),
             [Decimal('2.3'), Decimal('2.3457'), Decimal('23')]
         )
 
@@ -287,4 +289,49 @@ class TestCustomFieldFilters(test.TestCase):
                 .filter(predicted_place__not_isnull=True)
                 .values_list('first_name', flat=True)),
             {'George', 'John', 'Stuart'}
+        )
+
+
+class TestDatetimeFieldFilters(test.TestCase):
+    now: datetime
+    dates: List[datetime]
+
+    async def setUp(self):
+        self.now = datetime.now()
+
+        self.dates = [
+            self.now + timedelta(hours=-3),
+            self.now + timedelta(hours=-2),
+            self.now + timedelta(hours=-1),
+            self.now + timedelta(hours=0),
+            self.now + timedelta(hours=1),
+            self.now + timedelta(hours=2),
+            self.now + timedelta(hours=3),
+        ]
+
+        for date in self.dates:
+            await DatetimeFields.create(datetime=date)
+
+    async def test_gt(self):
+        dates = await DatetimeFields.filter(datetime__gt=self.now)
+
+        assert len(dates) == 3
+        for date in dates:
+            assert self.now < date.datetime
+
+    async def test_lt(self):
+        dates = await DatetimeFields.filter(datetime__lt=self.now)
+
+        assert len(dates) == 3
+        for date in dates:
+            assert self.now > date.datetime
+
+    async def test_not(self):
+        dates = await DatetimeFields.filter(datetime__not=self.now)
+        assert len(dates) == 6
+
+    async def test_sorting(self):
+        self.assertEqual(
+            await DatetimeFields.all().order_by('datetime').values_list('datetime', flat=True),
+            self.dates
         )
