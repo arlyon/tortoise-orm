@@ -8,11 +8,7 @@ class SpatialiteClient(SqliteClient):
 
     def __init__(self, file_path, *args, **kwargs):
         super().__init__(file_path, *args, **kwargs)
-        self.capabilities = Capabilities(
-            'spatialite',
-            connection={'file': file_path},
-            safe_indexes=True,
-        )
+        self.capabilities = Capabilities('spatialite', requires_limit=True)
 
     async def create_connection(self, with_db: bool):
         await super().create_connection(with_db)

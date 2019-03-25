@@ -14,16 +14,7 @@ class PostGISClient(AsyncpgDBClient):
             self, user: str, password: str, database: str, host: str, port: SupportsInt, **kwargs
     ):
         super().__init__(user, password, database, host, port, **kwargs)
-        self.capabilities = Capabilities(
-            'postgis',
-            connection={
-                'user': user,
-                'database': database,
-                'host': host,
-                'port': port,
-            },
-            safe_indexes=True,
-        )
+        self.capabilities = Capabilities('postgis', safe_indexes=True)
 
     async def create_connection(self, with_db: bool):
         await super().create_connection(with_db)
