@@ -27,15 +27,16 @@ class TestRegistry(test.TestCase):
 
     @requireCapability(dialect=["spatialite", "postgis"])
     async def test_filter(self):
-        london_eye = await GeometryFields.create(name="London Eye", location=Point(25, 12))
-        london = await GeometryFields.create(name="London", area=london_eye.location.buffer(10))
+        london_eye = await GeometryFields.create(name="London Eye", location=Point(0, 0))
+        london = await GeometryFields.create(name="London", area=london_eye.location.buffer(1))
         edinburgh_castle = await GeometryFields.create(name="Edinburgh Castle",
-                                                       location=Point(300, 22))
+                                                       location=Point(100, 0))
 
         points_inside_london = await GeometryFields.filter(
             Within(GeometryFields.location, london.area, g2_srid=27700),
             location__isnull=False
         )
+
 
         assert len(points_inside_london) == 1
         assert london_eye in points_inside_london
